@@ -1,5 +1,5 @@
 ________________________________________
-📘 Project Name: Daily Task Keeper
+📘 Project Name: TickTrack
 🧾 Summary
 Daily Task Keeper is a simple yet powerful task management app built using the MERN stack. It allows users to create, edit, mark as complete, and delete daily tasks with due dates. The app is optimized for speed, scalability, and user experience, featuring a clean UI built with Next.js and Tailwind CSS, and a backend powered by Node.js, Express, and MongoDB.
 This project helps reinforce full-stack development practices such as RESTful APIs, MongoDB schemas, and full CRUD functionality, while also showcasing UI/UX skills and API integration using Axios.
