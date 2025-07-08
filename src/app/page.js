@@ -1,4 +1,5 @@
 import HeroSection from '@/components/HeroSection';
+import Productivity from '@/components/Productivity';
 import Link from 'next/link';
 import React from 'react';
 import { BiRightArrowAlt } from 'react-icons/bi';
@@ -33,8 +34,12 @@ export default function Home() {
         </button>
       </div>
       {/* --HeroSection-- */}
-      <div className='mt-28 md:mt-32 w-full '>
+      <div className='mt-28 md:mt-32 w-full'>
         <HeroSection />
+      </div>
+      {/* --Productivity-- */}
+      <div className='mt-28 md:mt-32 w-full'>
+        <Productivity />
       </div>
     </main>
   );
