@@ -4,6 +4,7 @@ import React, { useState, useEffect } from 'react';
 import { MdDeleteOutline, MdModeEditOutline } from 'react-icons/md';
 import axiosInstance from '@/lib/axios';
 import { useParams, useRouter } from 'next/navigation';
+import toast from 'react-hot-toast';
 
 const TaskDetailPage = () => {
   const [singleTask, setSingleTask] = useState(null);
@@ -50,9 +51,10 @@ const TaskDetailPage = () => {
       const response = await axiosInstance.put(`/tasks/${taskId}`, singleTask);
       if (response.status === 200) {
         setIsEditing(false);
-        alert('Task updated successfully');
+        toast.success('Task updated successfully ✅');
       }
     } catch (error) {
+      toast.error('Failed to update task ❌');
       console.log('Error updating task', error.message);
     }
   };
@@ -62,11 +64,13 @@ const TaskDetailPage = () => {
     try {
       const res = await axiosInstance.delete(`/tasks/${taskId}`);
       if (res.status === 200) {
+        toast.success('Task deleted successfully ✅');
         console.log('Task deleted successfully');
         // --Redirect to dashboard page--
         router.push('/dashboard');
       }
     } catch (error) {
+      toast.error('Failed to delete task ❌');
       console.error('Error deleting task:', error.message);
     }
   };

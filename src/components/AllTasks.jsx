@@ -9,6 +9,7 @@ import DailyProgressCard from '@/ui/DailyProgress';
 import { BiLeftArrow, BiRightArrow } from 'react-icons/bi';
 import { MdDeleteOutline } from 'react-icons/md';
 import Link from 'next/link';
+import toast from 'react-hot-toast';
 
 const AllTasks = ({ summary, refreshSummary }) => {
   const [tasks, setTasks] = useState([]);
@@ -85,10 +86,12 @@ const AllTasks = ({ summary, refreshSummary }) => {
             t._id === task._id ? { ...t, status: newStatus } : t
           )
         );
+        toast.success(`Task marked as ${newStatus} ✅`);
         console.log('Task updated successfully:', res.data);
         refreshSummary();
       }
     } catch (error) {
+      toast.error('Failed to update task ❌');
       console.error('Task update failed:', error.message);
     }
   };
@@ -101,10 +104,12 @@ const AllTasks = ({ summary, refreshSummary }) => {
         setTasks((prevTasks) =>
           prevTasks.filter((task) => task._id !== taskId)
         );
+        toast.success('Task deleted successfully ✅');
         console.log('Task deleted successfully:', deleteTask.data);
         refreshSummary();
       }
     } catch (error) {
+      toast.error('Failed to delete task ❌');
       console.error('Error deleting task:', error.message);
     }
   };

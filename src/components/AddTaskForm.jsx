@@ -3,6 +3,7 @@
 import axiosInstance from '@/lib/axios';
 import React, { useState } from 'react';
 import { AiOutlinePlus } from 'react-icons/ai';
+import toast from 'react-hot-toast';
 
 const AddTaskForm = ({ refreshTasks, refreshSummary }) => {
   const [showForm, setShowForm] = useState(false);
@@ -28,7 +29,7 @@ const AddTaskForm = ({ refreshTasks, refreshSummary }) => {
     try {
       const send = await axiosInstance.post('/tasks', formData);
       if (send.status === 200) {
-        console.log('New Post Added..', send.data);
+        toast.success('Task added successfully ✅');
         setShowForm(false);
         setFormData({
           title: '',
@@ -40,9 +41,9 @@ const AddTaskForm = ({ refreshTasks, refreshSummary }) => {
         });
         if (refreshTasks) refreshTasks();
         if (refreshSummary) refreshSummary();
-        
       }
     } catch (error) {
+      toast.error(`Failed to add task ❌`);
       console.log('Error to send data..', error.message);
     }
   };
