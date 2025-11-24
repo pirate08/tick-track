@@ -75,7 +75,7 @@ const TaskDetailPage = () => {
     }
   };
   return (
-    <div className='h-full md:h-screen p-6 md:p-10'>
+    <div className='min-h-screen p-6 md:p-10'>
       {/* --Upper Section-- */}
       <div className='flex flex-col md:flex-row justify-around items-start md:items-center mb-6'>
         {/* --Title goes here-- */}
