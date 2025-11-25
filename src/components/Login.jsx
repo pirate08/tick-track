@@ -4,22 +4,96 @@ import React, { useState } from 'react';
 import Link from 'next/link';
 import { FiMail, FiLock, FiEye, FiEyeOff } from 'react-icons/fi';
 import Image from 'next/image';
+import { setCookie } from 'cookies-next';
+import toast from 'react-hot-toast';
+import axiosInstance from '@/lib/axios';
+import { useRouter } from 'next/navigation';
 
 const LoginUI = () => {
+  const router = useRouter();
+
   const [formData, setFormData] = useState({
     email: '',
     password: '',
   });
   const [showPassword, setShowPassword] = useState(false);
+  const [rememberMe, setRememberMe] = useState(false); // ✅ ADDED: Remember me state
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
 
-  //   --Handle change function goes here--
+  // --Handle change function--
   const handleChange = (e) => {
     setFormData({
       ...formData,
       [e.target.name]: e.target.value,
     });
+    setError('');
+  };
+
+  // --Login api call--
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+
+    setError('');
+
+    // --Input Validation--
+    if (!formData.email || !formData.password) {
+      setError('All fields are required');
+      return;
+    }
+
+    if (!formData.email.includes('@')) {
+      setError('Please enter a valid email');
+      return;
+    }
+
+    setLoading(true);
+
+    // --Api call--
+    try {
+      const response = await axiosInstance.post('/auth/login', {
+        email: formData.email,
+        password: formData.password,
+      });
+
+      if (response.status === 200) {
+        toast.success('Login successful ✅. Redirecting to Dashboard...', {
+          duration: 2000,
+        });
+
+        const cookieMaxAge = rememberMe ? 60 * 60 * 24 * 30 : 60 * 60 * 24 * 5;
+
+        setCookie('user_token', response.data.token, {
+          maxAge: cookieMaxAge,
+        });
+
+        if (rememberMe) {
+          localStorage.setItem('token', response.data.token);
+          localStorage.setItem('user', JSON.stringify(response.data.user));
+          localStorage.setItem('rememberMe', 'true');
+        } else {
+          sessionStorage.setItem('token', response.data.token);
+          sessionStorage.setItem('user', JSON.stringify(response.data.user));
+          localStorage.removeItem('rememberMe');
+        }
+
+        setFormData({
+          email: '',
+          password: '',
+        });
+
+        router.push('/dashboard');
+      }
+    } catch (error) {
+      console.error('Login error:', error);
+      const errorMessage =
+        error.response?.data?.message ||
+        'Invalid credentials. Please try again.';
+      toast.error(errorMessage);
+      setError(errorMessage);
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -70,7 +144,7 @@ const LoginUI = () => {
           )}
 
           {/* Form */}
-          <div className='space-y-4 sm:space-y-5'>
+          <form onSubmit={handleSubmit} className='space-y-4 sm:space-y-5'>
             {/* Email Field */}
             <div>
               <label
@@ -96,7 +170,7 @@ const LoginUI = () => {
 
             {/* Password Field */}
             <div>
-              <div className=' mb-1.5 sm:mb-2'>
+              <div className='mb-1.5 sm:mb-2'>
                 <label
                   htmlFor='password'
                   className='block text-xs sm:text-sm font-medium text-gray-700'>
@@ -135,12 +209,13 @@ const LoginUI = () => {
               </div>
             </div>
 
-            {/* Remember Me Checkbox */}
             <div className='flex items-center'>
               <input
                 id='remember'
                 name='remember'
                 type='checkbox'
+                checked={rememberMe}
+                onChange={(e) => setRememberMe(e.target.checked)}
                 className='h-4 w-4 text-black border-gray-300 rounded focus:ring-black cursor-pointer'
               />
               <label
@@ -154,10 +229,10 @@ const LoginUI = () => {
             <button
               type='submit'
               disabled={loading}
-              className='w-full bg-black text-white py-2.5 sm:py-3 rounded-lg font-medium text-sm sm:text-base hover:bg-gray-800 transition-colors duration-200 disabled:bg-gray-400 disabled:cursor-not-allowed mt-4 sm:mt-6'>
+              className='w-full bg-black text-white py-2.5 sm:py-3 rounded-lg font-medium text-sm sm:text-base hover:bg-gray-800 transition-colors duration-200 disabled:bg-gray-400 disabled:cursor-not-allowed mt-4 sm:mt-6 cursor-pointer'>
               {loading ? 'Signing In...' : 'Sign In'}
             </button>
-          </div>
+          </form>
 
           {/* Divider */}
           <div className='relative my-5 sm:my-6'>
