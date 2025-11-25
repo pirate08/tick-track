@@ -4,17 +4,96 @@ import React, { useState } from 'react';
 import Link from 'next/link';
 import { FiUser, FiMail, FiLock, FiEye, FiEyeOff } from 'react-icons/fi';
 import Image from 'next/image';
+import { useRouter } from 'next/navigation';
+import axiosInstance from '@/lib/axios';
+import toast from 'react-hot-toast';
 
 const RegisterUI = () => {
+  const router = useRouter();
+
   const [formData, setFormData] = useState({
     name: '',
     email: '',
     password: '',
+    confirmPassword: '',
   });
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
+
+  const handleChange = (e) => {
+    setFormData({
+      ...formData,
+      [e.target.name]: e.target.value,
+    });
+    setError('');
+  };
+
+  // --Form Submission--
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setError('');
+
+    // --Input Validation--
+    if (
+      !formData.name ||
+      !formData.email ||
+      !formData.password ||
+      !formData.confirmPassword
+    ) {
+      setError('All fields are required');
+      return;
+    }
+
+    if (!formData.email.includes('@')) {
+      setError('Please enter a valid email');
+      return;
+    }
+
+    if (formData.password.length < 6) {
+      setError('Password must be at least 6 characters long');
+      return;
+    }
+
+    if (formData.password !== formData.confirmPassword) {
+      setError('Password and Confirm Password do not match');
+      return;
+    }
+
+    // --API Call--
+    setLoading(true);
+    try {
+      const response = await axiosInstance.post('/auth/register', {
+        name: formData.name,
+        email: formData.email,
+        password: formData.password,
+      });
+
+      if (response.status === 201) {
+        toast.success('Account created successfully ✅');
+        console.log('Registration successful:', response.data);
+
+        setFormData({
+          name: '',
+          email: '',
+          password: '',
+          confirmPassword: '',
+        });
+
+        router.push('/login');
+      }
+    } catch (error) {
+      console.error('Registration error:', error);
+      const errorMessage =
+        error.response?.data?.message ||
+        'Failed to create account. Please try again.';
+      toast.error(errorMessage);
+      setError(errorMessage);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   return (
     <div className='min-h-screen flex items-center justify-center px-4 py-12 bg-gradient-to-br from-gray-50 to-gray-100 relative overflow-hidden'>
@@ -56,7 +135,7 @@ const RegisterUI = () => {
             </p>
           </div>
 
-          {/* Error Message Placeholder */}
+          {/* Error Message */}
           {error && (
             <div className='mb-6 p-3 sm:p-4 bg-red-50 border border-red-200 text-red-600 rounded-lg text-xs sm:text-sm'>
               {error}
@@ -64,7 +143,7 @@ const RegisterUI = () => {
           )}
 
           {/* Form */}
-          <div className='space-y-4 sm:space-y-5'>
+          <form className='space-y-4 sm:space-y-5' onSubmit={handleSubmit}>
             {/* Name Field */}
             <div>
               <label
@@ -81,6 +160,7 @@ const RegisterUI = () => {
                   id='name'
                   name='name'
                   value={formData.name}
+                  onChange={handleChange}
                   className='w-full pl-10 pr-4 py-2.5 sm:py-3 text-sm sm:text-base border border-gray-300 rounded-lg focus:ring-2 focus:ring-black focus:border-transparent transition-all outline-none'
                   placeholder='John Doe'
                 />
@@ -103,6 +183,7 @@ const RegisterUI = () => {
                   id='email'
                   name='email'
                   value={formData.email}
+                  onChange={handleChange}
                   className='w-full pl-10 pr-4 py-2.5 sm:py-3 text-sm sm:text-base border border-gray-300 rounded-lg focus:ring-2 focus:ring-black focus:border-transparent transition-all outline-none'
                   placeholder='john@example.com'
                 />
@@ -125,6 +206,7 @@ const RegisterUI = () => {
                   id='password'
                   name='password'
                   value={formData.password}
+                  onChange={handleChange}
                   className='w-full pl-10 pr-12 py-2.5 sm:py-3 text-sm sm:text-base border border-gray-300 rounded-lg focus:ring-2 focus:ring-black focus:border-transparent transition-all outline-none'
                   placeholder='••••••••'
                 />
@@ -133,21 +215,31 @@ const RegisterUI = () => {
                   onClick={() => setShowPassword(!showPassword)}
                   className='absolute inset-y-0 right-0 pr-3 flex items-center'>
                   {showPassword ? (
-                    <FiEyeOff
+                    <FiEye
                       className='text-gray-400 hover:text-gray-600'
                       size={18}
                     />
                   ) : (
-                    <FiEye
+                    <FiEyeOff
                       className='text-gray-400 hover:text-gray-600'
                       size={18}
                     />
                   )}
                 </button>
               </div>
-              <p className='mt-1 text-xs text-gray-500'>
-                Must be at least 6 characters
-              </p>
+              {/* ✅ IMPROVED: Only show message when user has typed something */}
+              {formData.password && (
+                <p
+                  className={`mt-2 text-xs ${
+                    formData.password.length >= 6
+                      ? 'text-green-500'
+                      : 'text-red-500'
+                  }`}>
+                  {formData.password.length < 6
+                    ? 'Must be at least 6 characters'
+                    : 'Looks good!'}
+                </p>
+              )}
             </div>
 
             {/* Confirm Password Field */}
@@ -165,6 +257,8 @@ const RegisterUI = () => {
                   type={showConfirmPassword ? 'text' : 'password'}
                   id='confirmPassword'
                   name='confirmPassword'
+                  value={formData.confirmPassword}
+                  onChange={handleChange}
                   className='w-full pl-10 pr-12 py-2.5 sm:py-3 text-sm sm:text-base border border-gray-300 rounded-lg focus:ring-2 focus:ring-black focus:border-transparent transition-all outline-none'
                   placeholder='••••••••'
                 />
@@ -173,28 +267,36 @@ const RegisterUI = () => {
                   onClick={() => setShowConfirmPassword(!showConfirmPassword)}
                   className='absolute inset-y-0 right-0 pr-3 flex items-center'>
                   {showConfirmPassword ? (
-                    <FiEyeOff
+                    <FiEye
                       className='text-gray-400 hover:text-gray-600'
                       size={18}
                     />
                   ) : (
-                    <FiEye
+                    <FiEyeOff
                       className='text-gray-400 hover:text-gray-600'
                       size={18}
                     />
                   )}
                 </button>
               </div>
+              {/* ✅ IMPROVED: Only show when both fields have values */}
+              {formData.password && formData.confirmPassword && (
+                <p className='mt-2 text-xs text-red-500'>
+                  {formData.password !== formData.confirmPassword
+                    ? 'Passwords do not match'
+                    : ''}
+                </p>
+              )}
             </div>
 
             {/* Submit Button */}
             <button
               type='submit'
               disabled={loading}
-              className='w-full bg-black text-white py-2.5 sm:py-3 rounded-lg font-medium text-sm sm:text-base hover:bg-gray-800 transition-colors duration-200 disabled:bg-gray-400 disabled:cursor-not-allowed mt-4 sm:mt-6'>
+              className='w-full bg-black text-white py-2.5 sm:py-3 rounded-lg font-medium text-sm sm:text-base hover:bg-gray-800 transition-colors duration-200 disabled:bg-gray-400 disabled:cursor-not-allowed mt-4 sm:mt-6 cursor-pointer'>
               {loading ? 'Creating Account...' : 'Sign Up'}
             </button>
-          </div>
+          </form>
 
           {/* Divider */}
           <div className='relative my-5 sm:my-6'>
@@ -211,7 +313,7 @@ const RegisterUI = () => {
           {/* Sign In Link */}
           <div className='text-center'>
             <Link
-              href='/signin'
+              href='/login'
               className='text-sm sm:text-base text-black font-medium hover:underline transition-all'>
               Sign In
             </Link>
