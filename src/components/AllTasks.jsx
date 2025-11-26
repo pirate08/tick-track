@@ -17,6 +17,21 @@ const AllTasks = ({ summary, refreshSummary }) => {
   const [currentPage, setCurrentPage] = useState(1);
   const tasksPerPage = 5;
 
+  // -- Sort Tasks Function --
+  const sortTasks = (tasksArray) => {
+    return tasksArray.sort((a, b) => {
+      // Completed tasks go to the bottom
+      if (a.status === 'Completed' && b.status !== 'Completed') {
+        return 1; // a comes after b
+      }
+      if (a.status !== 'Completed' && b.status === 'Completed') {
+        return -1; // a comes before b
+      }
+      // If both have the same completion status, maintain original order
+      return 0;
+    });
+  };
+
   // -- Fetch All Tasks --
   const fetchTasks = async () => {
     const token = getCookie('user_token');
@@ -31,7 +46,9 @@ const AllTasks = ({ summary, refreshSummary }) => {
           ...task,
           originalStatus: task.status === 'Completed' ? 'To-Do' : task.status,
         }));
-        setTasks(updatedTasks);
+        // Sort tasks after fetching
+        const sortedTasks = sortTasks(updatedTasks);
+        setTasks(sortedTasks);
       }
     } catch (error) {
       console.error('Error fetching tasks:', error.message);
@@ -186,11 +203,13 @@ const AllTasks = ({ summary, refreshSummary }) => {
       );
 
       if (res.status === 200) {
-        setTasks((prevTasks) =>
-          prevTasks.map((t) =>
-            t._id === task._id ? { ...t, status: newStatus } : t
-          )
+        // Update tasks and re-sort
+        const updatedTasks = tasks.map((t) =>
+          t._id === task._id ? { ...t, status: newStatus } : t
         );
+        const sortedTasks = sortTasks(updatedTasks);
+        setTasks(sortedTasks);
+
         toast.success(`Task marked as ${newStatus} ✅`);
         console.log('Task updated successfully:', res.data);
         refreshSummary();
