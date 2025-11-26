@@ -10,6 +10,7 @@ import { BiLeftArrow, BiRightArrow } from 'react-icons/bi';
 import { MdDeleteOutline } from 'react-icons/md';
 import Link from 'next/link';
 import toast from 'react-hot-toast';
+import { getCookie } from 'cookies-next';
 
 const AllTasks = ({ summary, refreshSummary }) => {
   const [tasks, setTasks] = useState([]);
@@ -18,8 +19,13 @@ const AllTasks = ({ summary, refreshSummary }) => {
 
   // -- Fetch All Tasks --
   const fetchTasks = async () => {
+    const token = getCookie('user_token');
     try {
-      const res = await axiosInstance.get('/tasks');
+      const res = await axiosInstance.get('/tasks', {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
       if (res.status === 200) {
         const updatedTasks = res.data.map((task) => ({
           ...task,
@@ -35,6 +41,95 @@ const AllTasks = ({ summary, refreshSummary }) => {
   useEffect(() => {
     fetchTasks();
   }, []);
+
+  // -- Calculate Time Remaining --
+  const getTimeRemaining = (dueDate) => {
+    const now = new Date();
+    const due = new Date(dueDate);
+
+    // Set both dates to start of day (12:00 AM) for day calculation
+    const todayStart = new Date(
+      now.getFullYear(),
+      now.getMonth(),
+      now.getDate()
+    );
+    const dueStart = new Date(due.getFullYear(), due.getMonth(), due.getDate());
+
+    // Calculate difference in milliseconds
+    const diffMs = dueStart - todayStart;
+    const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
+
+    // If due date is today or in the past
+    if (diffDays === 0) {
+      // Calculate hours remaining until end of today (11:59:59 PM)
+      const endOfToday = new Date(todayStart);
+      endOfToday.setHours(23, 59, 59, 999);
+      const hoursRemaining = Math.ceil((endOfToday - now) / (1000 * 60 * 60));
+
+      if (hoursRemaining > 1) {
+        return {
+          text: `${hoursRemaining} hours`,
+          color: 'text-orange-600',
+          isOverdue: false,
+        };
+      } else if (hoursRemaining === 1) {
+        return { text: '1 hour', color: 'text-orange-600', isOverdue: false };
+      } else {
+        const minutesRemaining = Math.ceil((endOfToday - now) / (1000 * 60));
+        if (minutesRemaining > 0) {
+          return {
+            text: `${minutesRemaining} minutes`,
+            color: 'text-red-600',
+            isOverdue: false,
+          };
+        }
+      }
+    }
+
+    // If due date has passed
+    if (diffDays < 0) {
+      const overdueDays = Math.abs(diffDays);
+      if (overdueDays === 1) {
+        return {
+          text: '1 day overdue',
+          color: 'text-red-600',
+          isOverdue: true,
+        };
+      }
+      return {
+        text: `${overdueDays} days overdue`,
+        color: 'text-red-600',
+        isOverdue: true,
+      };
+    }
+
+    // If due date is in the future
+    if (diffDays === 1) {
+      return { text: '1 day', color: 'text-yellow-600', isOverdue: false };
+    }
+
+    if (diffDays <= 3) {
+      return {
+        text: `${diffDays} days`,
+        color: 'text-yellow-600',
+        isOverdue: false,
+      };
+    }
+
+    if (diffDays <= 7) {
+      return {
+        text: `${diffDays} days`,
+        color: 'text-blue-600',
+        isOverdue: false,
+      };
+    }
+
+    return {
+      text: `${diffDays} days`,
+      color: 'text-gray-500',
+      isOverdue: false,
+    };
+  };
 
   // -- Pagination Calculations --
   const indexOfLastTask = currentPage * tasksPerPage;
@@ -74,11 +169,21 @@ const AllTasks = ({ summary, refreshSummary }) => {
     const newStatus =
       task.status === 'Completed' ? task.originalStatus : 'Completed';
 
+    const token = getCookie('user_token');
+
     try {
-      const res = await axiosInstance.put(`/tasks/${task._id}`, {
-        ...task,
-        status: newStatus,
-      });
+      const res = await axiosInstance.put(
+        `/tasks/${task._id}`,
+        {
+          ...task,
+          status: newStatus,
+        },
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
 
       if (res.status === 200) {
         setTasks((prevTasks) =>
@@ -98,8 +203,13 @@ const AllTasks = ({ summary, refreshSummary }) => {
 
   // --Delete the Completed Task--
   const handleDelete = async (taskId) => {
+    const token = getCookie('user_token');
     try {
-      const deleteTask = await axiosInstance.delete(`/tasks/${taskId}`);
+      const deleteTask = await axiosInstance.delete(`/tasks/${taskId}`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
       if (deleteTask.status === 200) {
         setTasks((prevTasks) =>
           prevTasks.filter((task) => task._id !== taskId)
@@ -133,74 +243,91 @@ const AllTasks = ({ summary, refreshSummary }) => {
           {/* --Tasks List-- */}
           <div>
             {currentTasks.length > 0 ? (
-              currentTasks.map((task) => (
-                <div
-                  key={task._id}
-                  className={`p-4 rounded-md flex items-center justify-between shadow-md mb-4 hover:scale-105 transition-transform duration-300 ease-in-out cursor-pointer ${getPriorityColor(
-                    task.priority
-                  )} ${task.status === 'Completed' ? 'opacity-50' : ''}`}>
-                  <div className='flex gap-2 items-start w-full'>
-                    <div>
-                      <span
-                        onClick={() => handleClick(task)}
-                        className='cursor-pointer'>
-                        {task.status === 'Completed' ? (
-                          <FaCheckCircle className='text-2xl text-green-500' />
-                        ) : (
-                          <FaRegCircle className='text-2xl text-gray-300' />
-                        )}
-                      </span>
-                    </div>
-                    <div>
-                      <h2
-                        className={`text-md font-semibold ${
-                          task.status === 'Completed'
-                            ? 'line-through text-gray-400'
-                            : ''
-                        }`}>
-                        <Link href={`/tasks/${task._id}`}>{task.title}</Link>
-                      </h2>
-                      <p
-                        className={`text-sm ${
-                          task.status === 'Completed'
-                            ? 'text-gray-400'
-                            : 'text-gray-500'
-                        }`}>
-                        {task.description.length > 120
-                          ? task.description.substring(0, 120) + '...'
-                          : task.description}
-                      </p>
-                      <div className='mt-2 flex justify-between items-center gap-1'>
+              currentTasks.map((task) => {
+                const timeRemaining = getTimeRemaining(task.dueDate);
+
+                return (
+                  <div
+                    key={task._id}
+                    className={`p-4 rounded-md flex items-center justify-between shadow-md mb-4 hover:scale-105 transition-transform duration-300 ease-in-out cursor-pointer ${getPriorityColor(
+                      task.priority
+                    )} ${task.status === 'Completed' ? 'opacity-50' : ''}`}>
+                    <div className='flex gap-2 items-start w-full'>
+                      <div>
+                        <span
+                          onClick={() => handleClick(task)}
+                          className='cursor-pointer'>
+                          {task.status === 'Completed' ? (
+                            <FaCheckCircle className='text-2xl text-green-500' />
+                          ) : (
+                            <FaRegCircle className='text-2xl text-gray-300' />
+                          )}
+                        </span>
+                      </div>
+                      <div className='flex-1'>
+                        <h2
+                          className={`text-md font-semibold ${
+                            task.status === 'Completed'
+                              ? 'line-through text-gray-400'
+                              : ''
+                          }`}>
+                          <Link href={`/tasks/${task._id}`}>{task.title}</Link>
+                        </h2>
                         <p
-                          className={`text-xs flex items-center gap-1 ${getPriorityTextColor(
-                            task.priority
-                          )}`}>
-                          <span className='text-lg'>
-                            <MdStarBorder />
-                          </span>{' '}
-                          {task.priority}
+                          className={`text-sm ${
+                            task.status === 'Completed'
+                              ? 'text-gray-400'
+                              : 'text-gray-500'
+                          }`}>
+                          {task.description.length > 120
+                            ? task.description.substring(0, 120) + '...'
+                            : task.description}
                         </p>
-                        <p className='text-xs text-gray-500 flex items-center gap-1'>
-                          <span>
-                            <MdOutlineCalendarToday />
-                          </span>{' '}
-                          {new Date(task.dueDate).toLocaleDateString()}
-                        </p>
+                        <div className='mt-2 flex justify-between items-center gap-5 flex-wrap'>
+                          <p
+                            className={`text-xs flex items-center gap-1 ${getPriorityTextColor(
+                              task.priority
+                            )}`}>
+                            <span className='text-lg'>
+                              <MdStarBorder />
+                            </span>{' '}
+                            {task.priority}
+                          </p>
+                          <p
+                            className={`text-xs ${timeRemaining.color} flex items-center gap-1 font-medium`}>
+                            {timeRemaining.isOverdue ? (
+                              <>
+                                <span>
+                                  <MdOutlineCalendarToday />
+                                </span>
+                                {timeRemaining.text}
+                              </>
+                            ) : (
+                              <>
+                                Due in:
+                                <span>
+                                  <MdOutlineCalendarToday />
+                                </span>{' '}
+                                {timeRemaining.text}
+                              </>
+                            )}
+                          </p>
+                        </div>
                       </div>
                     </div>
+                    <div>
+                      {task.status === 'Completed' ? (
+                        <MdDeleteOutline
+                          className='text-2xl text-red-500 opacity-100 cursor-pointer hover:scale-110 transition-transform'
+                          onClick={() => handleDelete(task._id)}
+                        />
+                      ) : (
+                        ''
+                      )}
+                    </div>
                   </div>
-                  <div>
-                    {task.status === 'Completed' ? (
-                      <MdDeleteOutline
-                        className='text-2xl text-red-500 opacity-100'
-                        onClick={() => handleDelete(task._id)}
-                      />
-                    ) : (
-                      ''
-                    )}
-                  </div>
-                </div>
-              ))
+                );
+              })
             ) : (
               <div>
                 <h1 className='text-red-600'>No tasks available.</h1>
