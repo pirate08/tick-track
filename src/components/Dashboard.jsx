@@ -10,13 +10,19 @@ import {
 } from 'react-icons/md';
 import axiosInstance from '@/lib/axios';
 import AllTasks from './AllTasks';
+import { getCookie } from 'cookies-next';
 
 const DashboardPage = () => {
   const [summary, setSummary] = useState({});
 
   const fetchSummary = async () => {
+    const token = getCookie('user_token');
     try {
-      const res = await axiosInstance.get('/tasks/summary');
+      const res = await axiosInstance.get('/tasks/summary', {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
       if (res.status === 200) {
         setSummary(res.data);
         console.log('Summary fetched successfully:', res.data);

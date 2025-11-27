@@ -4,8 +4,12 @@ import axiosInstance from '@/lib/axios';
 import React, { useState } from 'react';
 import { AiOutlinePlus } from 'react-icons/ai';
 import toast from 'react-hot-toast';
+import { getCookie } from 'cookies-next';
+import { useRouter } from 'next/navigation';
 
 const AddTaskForm = ({ refreshTasks, refreshSummary }) => {
+  const router = useRouter();
+
   const [showForm, setShowForm] = useState(false);
   const [formData, setFormData] = useState({
     title: '',
@@ -26,11 +30,18 @@ const AddTaskForm = ({ refreshTasks, refreshSummary }) => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+
+    const token = getCookie('user_token');
     try {
-      const send = await axiosInstance.post('/tasks', formData);
-      if (send.status === 200) {
+      const send = await axiosInstance.post('/tasks', formData, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+      if (send.status === 200 || send.status === 201) {
         toast.success('Task added successfully ✅');
         setShowForm(false);
+        router.refresh();
         setFormData({
           title: '',
           description: '',
@@ -153,6 +164,7 @@ const AddTaskForm = ({ refreshTasks, refreshSummary }) => {
               </button>
               {/* --Cancel-- */}
               <button
+                type='button'
                 className='bg-white text-black p-2 border-gray-400 border rounded-md w-full md:w-1/2 cursor-pointer'
                 onClick={() => setShowForm(false)}>
                 Cancel
