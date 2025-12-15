@@ -312,25 +312,28 @@ const AllTasks = ({ summary, refreshSummary }) => {
                             </span>{' '}
                             {task.priority}
                           </p>
-                          <p
-                            className={`text-xs ${timeRemaining.color} flex items-center gap-1 font-medium`}>
-                            {timeRemaining.isOverdue ? (
-                              <>
-                                <span>
-                                  <MdOutlineCalendarToday />
-                                </span>
-                                {timeRemaining.text}
-                              </>
-                            ) : (
-                              <>
-                                Due in:
-                                <span>
-                                  <MdOutlineCalendarToday />
-                                </span>{' '}
-                                {timeRemaining.text}
-                              </>
-                            )}
-                          </p>
+                          {/* Only show time remaining if task is NOT completed */}
+                          {task.status !== 'Completed' && (
+                            <p
+                              className={`text-xs ${timeRemaining.color} flex items-center gap-1 font-medium`}>
+                              {timeRemaining.isOverdue ? (
+                                <>
+                                  <span>
+                                    <MdOutlineCalendarToday />
+                                  </span>
+                                  {timeRemaining.text}
+                                </>
+                              ) : (
+                                <>
+                                  Due in:
+                                  <span>
+                                    <MdOutlineCalendarToday />
+                                  </span>{' '}
+                                  {timeRemaining.text}
+                                </>
+                              )}
+                            </p>
+                          )}
                         </div>
                       </div>
                     </div>
