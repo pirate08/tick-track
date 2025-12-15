@@ -78,32 +78,54 @@ const AddTaskForm = ({ refreshTasks, refreshSummary }) => {
           {/* --Form-- */}
           <form className='mt-4' onSubmit={handleSubmit}>
             {/* --Text Field-- */}
-            <input
-              type='text'
-              name='title'
-              placeholder='Task Title (required)'
-              value={formData.title}
-              onChange={handleChange}
-              className='border-gray-200 border-1 w-full p-2 rounded-md mb-4'
-              required
-            />
+            <div className='mb-4'>
+              <label
+                htmlFor='title'
+                className='block text-sm font-medium text-gray-700 mb-1'>
+                Task Title
+              </label>
+              <input
+                type='text'
+                id='title'
+                name='title'
+                placeholder='Task Title (required)'
+                value={formData.title}
+                onChange={handleChange}
+                className='border-gray-200 border-1 w-full p-2 rounded-md'
+                required
+              />
+            </div>
             {/* --Description Field-- */}
-            <textarea
-              placeholder='Description (required)'
-              name='description'
-              value={formData.description}
-              onChange={handleChange}
-              required
-              cols='5'
-              rows='4'
-              className='border-gray-200 border-1 w-full p-2 rounded-md mb-4'
-            />
+            <div className='mb-4'>
+              <label
+                htmlFor='description'
+                className='block text-sm font-medium text-gray-700 mb-1'>
+                Description
+              </label>
+              <textarea
+                id='description'
+                placeholder='Description (required)'
+                name='description'
+                value={formData.description}
+                onChange={handleChange}
+                required
+                cols='5'
+                rows='4'
+                className='border-gray-200 border-1 w-full p-2 rounded-md'
+              />
+            </div>
             {/* --Due and Status */}
             <div className='flex items-center flex-col md:flex-row gap-2 mb-4'>
               {/* --Due Date-- */}
               <div className='w-full md:w-1/2'>
+                <label
+                  htmlFor='dueDate'
+                  className='block text-sm font-medium text-gray-700 mb-1'>
+                  Due Date
+                </label>
                 <input
                   type='date'
+                  id='dueDate'
                   name='dueDate'
                   value={formData.dueDate}
                   onChange={handleChange}
@@ -112,7 +134,13 @@ const AddTaskForm = ({ refreshTasks, refreshSummary }) => {
               </div>
               {/* --Status-- */}
               <div className='w-full md:w-1/2'>
+                <label
+                  htmlFor='status'
+                  className='block text-sm font-medium text-gray-700 mb-1'>
+                  Status
+                </label>
                 <select
+                  id='status'
                   className='border-gray-200 text-gray-500 border w-full p-2 rounded-md cursor-pointer'
                   value={formData.status}
                   onChange={handleChange}
@@ -128,7 +156,13 @@ const AddTaskForm = ({ refreshTasks, refreshSummary }) => {
             <div className='flex items-center flex-col md:flex-row gap-2 mb-8'>
               {/* --Categories-- */}
               <div className='w-full md:w-1/2'>
+                <label
+                  htmlFor='categories'
+                  className='block text-sm font-medium text-gray-700 mb-1'>
+                  Categories
+                </label>
                 <select
+                  id='categories'
                   className='border-gray-200 text-gray-500 border w-full p-2 rounded-md cursor-pointer'
                   value={formData.categories}
                   onChange={handleChange}
@@ -142,7 +176,13 @@ const AddTaskForm = ({ refreshTasks, refreshSummary }) => {
               </div>
               {/* --Priority-- */}
               <div className='w-full md:w-1/2'>
+                <label
+                  htmlFor='priority'
+                  className='block text-sm font-medium text-gray-700 mb-1'>
+                  Priority
+                </label>
                 <select
+                  id='priority'
                   className='border-gray-200 text-gray-500 border w-full p-2 rounded-md cursor-pointer'
                   value={formData.priority}
                   name='priority'
