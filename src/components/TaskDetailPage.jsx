@@ -235,7 +235,7 @@ const TaskDetailPage = () => {
                     onChange={handleChange}
                     required
                     rows='5'
-                    className='w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-gray-900 whitespace-pre-wrap focus:border-transparent transition-all resize-none'
+                    className='w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-gray-900 focus:border-transparent transition-all resize-none'
                   />
                 </div>
 
@@ -331,7 +331,7 @@ const TaskDetailPage = () => {
                   <h3 className='text-sm font-semibold text-gray-500 uppercase tracking-wide mb-2'>
                     Description
                   </h3>
-                  <p className='text-gray-700 text-lg leading-relaxed'>
+                  <p className='text-gray-700 text-lg leading-relaxed whitespace-pre-wrap'>
                     {singleTask.description || 'No description provided.'}
                   </p>
                 </div>
