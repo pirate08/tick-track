@@ -235,7 +235,7 @@ const TaskDetailPage = () => {
                     onChange={handleChange}
                     required
                     rows='5'
-                    className='w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-gray-900 focus:border-transparent transition-all resize-none'
+                    className='w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-gray-900 whitespace-pre-wrap focus:border-transparent transition-all resize-none'
                   />
                 </div>
 
